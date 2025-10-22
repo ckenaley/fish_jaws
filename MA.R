@@ -8,6 +8,11 @@ library(dietr)
 
 #install_exiftool()
 
+#image jdat
+im_f <- list.files("data/images",full.names=T,recursive = T) %>% basename
+sp <- dirname(list.files("data/images",full.names=T,recursive = T)) %>% basename()
+sp_ <- cbind(im_file=im_f,sp=sp) %>% data.frame()
+
 #trophic data
 fw <- read_csv("data/FishTraits_14.3_FW.csv")
 mar <- read_csv("data/Marine_Traits.csv")
@@ -46,14 +51,10 @@ jaw_l <- d_xy%>%
 diet$Taxonomy %>% unique()
 
 
-im_f <- list.files("data/images",full.names=T,recursive = T) %>% basename
-sp <- dirname(list.files("data/images",full.names=T,recursive = T)) %>% basename()
-sp_ <- cbind(im_file=im_f,sp=sp) %>% data.frame()
-
+#jaw length
 jaw_l <- jaw_l %>% 
   mutate(im_file=gsub("_.csv","",basename(file))) %>% 
-  left_join(sp_) %>% 
-  left_join(my.TL$Species %>% rename(sp=Species))
+  left_join(sp_) 
 
 diet
 gsub("_.csv","",basename(jaw_l$file))
@@ -70,9 +71,6 @@ jaw_area %>%
 
 jaw_l %>% 
   ggplot(aes(MA)) + geom_histogram()
-
-jaw_l%>% 
-  ggplot(aes(TrophicLevel,)) + geom_point()+geom_smooth(method="lm")
 
 
 d_xy %>% 
@@ -97,31 +95,14 @@ pca <- gm.prcomp(gpa$coords,transform = F)
 plot(pca)
 
 PCA <- pca$x %>% data.frame() %>%  mutate(sp=rownames(pca$x)) %>% 
-  left_join(sp_) %>% 
-  left_join(my.TL$Species %>% rename(sp=Species))
+  left_join(sp_) 
 
-PCA %>% 
-  ggplot(aes(TrophicLevel,Comp2))+geom_point()+geom_smooth(method="lm")
-al_coor <- lapply(1:dim(gpa$coords)[3], function(x) tibble(f=basename(f[x]),n=1:dim(gpa$coords)[1]) %>% cbind(gpa$coords[,,x])) %>% do.call(rbind,.)
-
-
-al_coor %>% 
-  ggplot(aes(X,Y,col=as.factor(n)))+geom_point()+coord_equal()+scale_x_reverse()
-
-al_coor %>% group_by(f) %>% filter(Y[5]<Y[6]) %>% pull(f) %>% unique
-
-MA <- al_coor %>% 
-  group_by(f) %>% 
-  summarise(Li=dist.2d(X[3],X[6],Y[3],Y[6]),
-            Lo=dist.2d(X[3],X[1],Y[3],Y[1]),
-            MA=Li/Lo)
-
-MA %>% 
-  ggplot(aes(MA)) + geom_histogram()
-
-hist(MA$MA)
+# PCA %>% 
+#   ggplot(aes(TrophicLevel,Comp2))+geom_point()+geom_smooth(method="lm")
+# al_coor <- lapply(1:dim(gpa$coords)[3], function(x) tibble(f=basename(f[x]),n=1:dim(gpa$coords)[1]) %>% cbind(gpa$coords[,,x])) %>% do.call(rbind,.)
 
 
+#ignore
 plot_spec <- function(f_,img_dir="data/images",col_="orange"){
   
 
