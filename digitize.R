@@ -1,5 +1,6 @@
 library(StereoMorph)
 
+
 image_directory <- "data/all_images"
 landmark_directory <- "data/jaw_landmarks"
 
